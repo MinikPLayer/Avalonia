@@ -13,7 +13,7 @@ namespace Avalonia.Rendering
         private readonly object _lock = new object();
         private bool _running;
         private readonly Stopwatch _st = Stopwatch.StartNew();
-        private readonly TimeSpan _timeBetweenTicks;
+        private TimeSpan _timeBetweenTicks;
 
         public SleepLoopRenderTimer(int fps)
         {
@@ -46,6 +46,11 @@ namespace Avalonia.Rendering
         }
 
         public bool RunsInBackground => true;
+
+        public void SetFPS(int fps)
+        {
+            _timeBetweenTicks = TimeSpan.FromSeconds(1d / fps);
+        }
 
         void LoopProc()
         {

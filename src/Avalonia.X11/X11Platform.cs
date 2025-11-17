@@ -68,9 +68,18 @@ namespace Avalonia.X11
             Globals = new X11Globals(this);
             Resources = new XResources(this);
 
+            Globals.RootGeometryChangedChanged += () =>
+            {
+                var targetRefreshRate = GetRefreshRate();
+                var timer = AvaloniaLocator.Current.GetService<IRenderTimer>();
+                if (timer is SleepLoopRenderTimer renderTimer)
+                    renderTimer.SetFPS(targetRefreshRate);
+            };
+
+            var targetRefreshRate = GetRefreshRate();
             IRenderTimer timer = options.ShouldRenderOnUIThread
-               ? new UiThreadRenderTimer(60)
-               : new SleepLoopRenderTimer(60);
+               ? new UiThreadRenderTimer(targetRefreshRate)
+               : new SleepLoopRenderTimer(targetRefreshRate);
 
             var clipboardImpl = new X11ClipboardImpl(this);
             var clipboard = new Input.Platform.Clipboard(clipboardImpl);
@@ -118,6 +127,23 @@ namespace Avalonia.X11
 
             return x11icon.Data.Select(x => x.ToUInt32()).ToArray();
         }
+
+        private int GetRefreshRate()
+        {
+            var targetRefreshRate = 60;
+            if(Display == IntPtr.Zero || OrphanedWindow == IntPtr.Zero)
+                return targetRefreshRate;
+
+            var xrandrScreenInfo = XRRGetScreenInfo(Display, OrphanedWindow);
+            if (xrandrScreenInfo != IntPtr.Zero)
+            {
+                targetRefreshRate = XRRConfigCurrentRate(xrandrScreenInfo);
+                XRRFreeScreenConfigInfo(xrandrScreenInfo);
+            }
+
+            return targetRefreshRate;
+        }
+
 
         public ITrayIconImpl CreateTrayIcon()
         {

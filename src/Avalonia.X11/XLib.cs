@@ -22,6 +22,15 @@ namespace Avalonia.X11
         private const string libXInput = "libXi.so.6";
         private const string libXCursor = "libXcursor.so.1";
 
+        [DllImport(libX11Randr)]
+        public static extern IntPtr XRRGetScreenInfo(IntPtr display, IntPtr drawable);
+
+        [DllImport(libX11Randr)]
+        public static extern IntPtr XRRFreeScreenConfigInfo(IntPtr screenInfo);
+
+        [DllImport(libX11Randr)]
+        public static extern short XRRConfigCurrentRate(IntPtr screenInfo);
+
         [DllImport(libX11)]
         public static extern IntPtr XOpenDisplay(IntPtr display);
 
